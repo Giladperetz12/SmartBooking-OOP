@@ -7,34 +7,33 @@ from utils.database_manager import DatabaseManager
 
 
 def main():
-    db = DatabaseManager()
-    conn = db.connect()
-    print("Connected : ",conn)
-
-    db.create_clients_table()
-    print(f"Client Table Created")
-
-    db.close()
-    print("Closed : ",conn)
+    pass
 
 
 def test():
-    test_manager = BusinessManager()
-    # Test 1 : adding a client
-    print(test_manager.add_client(Client(1, "Gilad", "gilad@test.com", "0501234567")))
-    # Test 2 : adding a product
-    print(test_manager.add_product(Service(10, "Haircut", "Service", 50, 30, False)))
-    # Test 3 : creating an order :
-    order = test_manager.create_order(100, 1)
-    print(order)
-    # Test 4 : adding item to order :
-    print(test_manager.add_item_to_order(100, 10))
+    db = DatabaseManager()
+    conn = db.connect()
+    print("Connected : ", conn)
 
+    db.create_clients_table()
+    print(f"Client Table Created")
+    db.create_products_table()
+    print(f"Product Table Created")
+    db.create_service_table()
+    print(f"Service Table Created")
+    db.create_physical_product_table()
+    print(f"Physical Product Table Created")
+    db.create_orders_table()
+    print(f"Orders Table Created")
+    db.create_order_items_table()
+    print(f"Order Items Table Created")
+    db.create_payments_table()
+    print(f"Payments Table Created")
 
-
+    db.close()
+    print("Closed : ", conn)
 
 
 if __name__ == "__main__":
     main()
-    # test()
-
+    test()
