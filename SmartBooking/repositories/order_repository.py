@@ -22,7 +22,7 @@ class OrderRepository:
 
         if not isinstance(client_id, int) or client_id <= 0:
             raise ValueError("Client ID must be a valid id : Positive Integer")
-        client = self.client_repo.get_client_by_id(client_id)
+        client = self.client_repo.get_client(client_id)
         conn = self.db.connect()
         cursor = conn.cursor()
         try:
@@ -40,7 +40,7 @@ class OrderRepository:
             raise ValueError("Order ID already exists")
         return Order(order_id, client)
 
-    def get_order_by_id(self, order_id: int):
+    def get_order(self, order_id: int):
         if not isinstance(order_id, int) or order_id <= 0:
             raise ValueError("Order ID must be a valid id : Positive Integer")
         conn = self.db.connect()
@@ -57,7 +57,7 @@ class OrderRepository:
         if order_row is None:
             raise ValueError("Order not found")
         order_id, client_id, status, created_at = order_row
-        client = self.client_repo.get_client_by_id(client_id)
+        client = self.client_repo.get_client(client_id)
         order = Order(order_id, client)
         order._status = OrderStatus(status)
         cursor.execute(
@@ -70,7 +70,7 @@ class OrderRepository:
         )
         product_rows = cursor.fetchall()
         for (product_id,) in product_rows:
-            product = self.product_repo.get_product_by_id(product_id)
+            product = self.product_repo.get_product(product_id)
             order._items.append(product)
         return order
 
@@ -79,8 +79,8 @@ class OrderRepository:
             raise ValueError("Order ID must be a valid id : Positive Integer")
         if not isinstance(product_id, int) or product_id <= 0:
             raise ValueError("Product ID must be a valid id : Positive Integer")
-        self.get_order_by_id(order_id)
-        product = self.product_repo.get_product_by_id(product_id)
+        self.get_order(order_id)
+        product = self.product_repo.get_product(product_id)
         conn = self.db.connect()
         cursor = conn.cursor()
         cursor.execute(

@@ -33,7 +33,7 @@ class ClientRepository:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT client_id, name, email, phone
+            SELECT client_id, name, email, phone_number
             FROM clients
             WHERE client_id = ?
             """,
@@ -51,7 +51,7 @@ class ClientRepository:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT client_id, name, email, phone
+            SELECT client_id, name, email, phone_number
             FROM clients
             """
         )
