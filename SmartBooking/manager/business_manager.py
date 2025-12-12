@@ -1,121 +1,89 @@
-from models.client import Client
-from models.product import Product
-from models.order import Order
 from models.physical_product import PhysicalProduct
+from models.product import Product
+from models.service import Service
+from repositories.client_repository import ClientRepository
+from repositories.product_repository import ProductRepository
+from repositories.order_repository import OrderRepository
+from repositories.payment_repository import PaymentRepository
+from models.client import Client
+from models.order_status import OrderStatus
 from payments.payment import Payment
 from payments.cash_payment import CashPayment
-from payments.credit_card_payment import CreditCardPayment
 from payments.bank_transfer_payment import BankTransferPayment
+from payments.credit_card_payment import CreditCardPayment
 
 
 class BusinessManager:
-    def __init__(self):
-        self._clients = []
-        self._products = []
-        self._orders = []
-        self._payments = []
 
-    def add_client(self, client: Client):
-        if not isinstance(client, Client):
-            raise ValueError("Client must be a Client")
-        for exist_client in self._clients:
-            if exist_client._client_id == client._client_id:
-                raise Exception("Client ID already registered")
-        self._clients.append(client)
-        return 'Client registered'
+    def __init__(self):
+        self.client_repo = ClientRepository()
+        self.product_repo = ProductRepository()
+        self.order_repo = OrderRepository()
+        self.payment_repo = PaymentRepository()
+
+    def add_client(self, client):
+        return self.client_repo.add_client(client)
 
     def get_client(self, client_id: int):
-        if client_id <= 0 or not isinstance(client_id, int):
-            raise ValueError("Client ID must be a valid id : Positive Integer")
-        for exist_client in self._clients:
-            if exist_client._client_id == client_id:
-                return exist_client
-        raise ValueError("Client not found")
+        return self.client_repo.get_client(client_id)
 
-    def add_product(self, product: Product):
-        if not isinstance(product, Product):
-            raise ValueError("Product must be a valid Product type")
-        for exist_product in self._products:
-            if exist_product._product_id == product._product_id:
-                raise Exception("Product ID already registered")
-        self._products.append(product)
-        return 'Product registered'
+    def add_product(self, product):
+        return self.product_repo.add_product(product)
 
     def get_product(self, product_id: int):
-        if not isinstance(product_id, int) or product_id <= 0:
-            raise ValueError("Product ID must be a valid id : Positive Integer")
-        for exist_product in self._products:
-            if exist_product._product_id == product_id:
-                return exist_product
-        raise ValueError("Product not found")
+        return self.product_repo.get_product(product_id)
 
     def create_order(self, order_id: int, client_id: int):
-        if not isinstance(order_id, int) or order_id <= 0:
-            raise ValueError("Order ID must be a valid id : Positive Integer")
-        if not isinstance(client_id, int) or client_id <= 0:
-            raise ValueError("Client ID must be a valid id : Positive Integer")
-        for exist_order in self._orders:
-            if exist_order._order_id == order_id:
-                raise ValueError("Order ID already registered")
-        client = self.get_client(client_id)
-        new_order = Order(order_id, client)
-        self._orders.append(new_order)
-        return new_order
+        return self.order_repo.create_order(order_id, client_id)
 
     def add_item_to_order(self, order_id: int, product_id: int):
-        if not isinstance(order_id, int) or order_id <= 0:
-            raise ValueError("Order ID must be a valid id : Positive Integer")
-        if not isinstance(product_id, int) or product_id <= 0:
-            raise ValueError("Product ID must be a valid id : Positive Integer")
-        order = self.get_order(order_id)
-        product = self.get_product(product_id)
+        order = self.order_repo.add_item_to_order(order_id, product_id)
+        product = self.product_repo.get_product(product_id)
+
         if isinstance(product, PhysicalProduct):
             if product._stock <= 0:
-                raise Exception("Product out of stock")
-            product._stock -= 1
-        return order.add_item(product)
+                raise ValueError("Product out of stock")
 
-    def pay_order(self, order_id: int, payment: Payment):
-        if not isinstance(order_id, int) or order_id <= 0:
-            raise ValueError("Order ID must be a positive integer")
-        if not isinstance(payment, Payment):
-            raise ValueError("Payment must be a Payment object")
-        order = self.get_order(order_id)
-        checkout = order.calculate_total()
-        if isinstance(payment, CreditCardPayment):
-            if payment._amount != checkout:
-                raise Exception(f"Credit card payment must be exactly {checkout}")
-            payment.process_payment()
-            message = order.mark_paid()
-            self._payments.append(payment)
-            return message
-        elif isinstance(payment, BankTransferPayment):
-            if payment._amount != checkout:
-                raise Exception(f"Bank transfer amount must be exactly {checkout}")
-            payment.process_payment()
-            message = order.mark_paid()
-            self._payments.append(payment)
-            return message
-        elif isinstance(payment, CashPayment):
-            if payment._received_amount < checkout:
-                raise Exception("Insufficient cash provided")
-            payment.process_payment()
-            message = order.mark_paid()
-            self._payments.append(payment)
-            return f"{message}. Change returned: {payment._change}"
-        else:
-            raise ValueError("Payment type not recognized")
+        res = self.order_repo.add_item_to_order(order_id, product_id)
+        if isinstance(product,PhysicalProduct):
+            product._stock -= 1
+            self.product_repo.add_product(product)
+        return res
 
     def cancel_order(self, order_id: int):
-        if not isinstance(order_id, int) or order_id <= 0:
-            raise ValueError("Order ID must be a valid id : Positive Integer")
-        order = self.get_order(order_id)
-        order.cancel()
+        order = self.order_repo.get_order(order_id)
+        if order._status == OrderStatus.CANCELED:
+            raise ValueError("Order already canceled")
+        if order._status == OrderStatus.PAID:
+            raise ValueError("Cannot cancel order that already paid")
+        return self.order_repo.update_order_status(order_id, OrderStatus.CANCELED)
 
-    def get_order(self, order_id: int):
-        if not isinstance(order_id, int) or order_id <= 0:
-            raise ValueError("Order ID must be a valid id : Positive Integer")
-        for exist_order in self._orders:
-            if exist_order._order_id == order_id:
-                return exist_order
-        raise ValueError("Order not found")
+    def pay_order(self, order_id: int, payment: Payment):
+        order = self.order_repo.get_order(order_id)
+        if order._status == OrderStatus.PAID:
+            raise ValueError("Cannot pay order that already paid")
+        if order._status == OrderStatus.CANCELED:
+            raise ValueError("Cannot cancel order that already canceled")
+        checkout = order.calculate_total()
+
+        if isinstance(payment, CreditCardPayment):
+            payment.process_payment()
+
+        elif isinstance(payment, BankTransferPayment):
+            if payment._amount != checkout:
+                raise ValueError("Payment amount does not match")
+            payment.process_payment()
+
+        elif isinstance(payment, CashPayment):
+            if payment._amount < checkout:
+                raise ValueError("not enough money !")
+            payment.process_payment()
+        else:
+            raise Exception("Unknown payment type")
+
+        self.payment_repo.add_payment(payment)
+        self.order_repo.update_order_status(order_id, OrderStatus.PAID)
+
+        return "Order paid successfully"
+
+

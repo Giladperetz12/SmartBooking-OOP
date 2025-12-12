@@ -1,23 +1,23 @@
 import sqlite3
+from pathlib import Path
 
 
-class DatabaseManager():
-    def __init__(self, db_name: str = "SmartBooking.db"):
-        self.db_name = db_name
+class DatabaseManager:
+    def __init__(self, db_name="SmartBooking.db"):
+        project_root = Path(__file__).resolve().parents[2]
+        self.db_path = project_root / db_name
         self.conn = None
 
     def connect(self):
-        """Creates a connection to the SQLite database."""
-        try:
-            self.conn = sqlite3.connect(self.db_name)
-            return self.conn
-        except Exception as e:
-            raise Exception(f"failed to connect to the database : {e}")
+        if not self.conn:
+            self.conn = sqlite3.connect(self.db_path)
+            self.conn.execute("PRAGMA foreign_keys = ON;")
+        return self.conn
 
     def close(self):
-        """Close the connection to the SQLite database."""
         if self.conn:
             self.conn.close()
+            self.conn = None
 
     def create_clients_table(self):
         """Creates the clients table if it does not exist."""

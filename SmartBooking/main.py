@@ -7,14 +7,16 @@ from utils.database_manager import DatabaseManager
 
 
 def main():
-    pass
+    bm = BusinessManager()
+    client = Client(1,"tets","test@mail.com","0543055713")
+    print(bm.add_client(client))
+
 
 
 def test():
     db = DatabaseManager()
     conn = db.connect()
     print("Connected : ", conn)
-
     db.create_clients_table()
     print(f"Client Table Created")
     db.create_products_table()
@@ -29,11 +31,10 @@ def test():
     print(f"Order Items Table Created")
     db.create_payments_table()
     print(f"Payments Table Created")
-
     db.close()
     print("Closed : ", conn)
 
 
 if __name__ == "__main__":
-    main()
+    # main()
     test()

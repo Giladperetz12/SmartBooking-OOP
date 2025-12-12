@@ -2,7 +2,6 @@ from models.client import Client
 from models.service import Service
 from models.physical_product import PhysicalProduct
 from payments.cash_payment import CashPayment
-
 from repositories.client_repository import ClientRepository
 from repositories.product_repository import ProductRepository
 from repositories.order_repository import OrderRepository
@@ -20,7 +19,6 @@ def test_repositories():
     # ---- Client ----
     client = Client(2, "Gilad", "gilad@test.com", "0501234567")
     print(client_repo.add_client(client))
-
     fetched_client = client_repo.get_client(2)
     print("Fetched client:", fetched_client._name)
 
