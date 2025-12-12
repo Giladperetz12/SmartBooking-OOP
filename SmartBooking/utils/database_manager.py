@@ -9,15 +9,29 @@ class DatabaseManager:
         self.conn = None
 
     def connect(self):
-        if not self.conn:
-            self.conn = sqlite3.connect(self.db_path)
-            self.conn.execute("PRAGMA foreign_keys = ON;")
+        p = Path(self.db_path)
+        if p.exists():
+            with open(p, "rb") as f:
+                if f.read(16) != b"SQLite format 3\x00":
+                    raise Exception(f"DB file exists but is NOT SQLite: {p}")
+
+        self.conn = sqlite3.connect(self.db_path)
+        self.conn.execute("PRAGMA foreign_keys = ON;")
         return self.conn
 
     def close(self):
         if self.conn:
             self.conn.close()
             self.conn = None
+
+    def init_schema(self):
+        self.create_clients_table()
+        self.create_products_table()
+        self.create_service_table()
+        self.create_physical_product_table()
+        self.create_orders_table()
+        self.create_order_items_table()
+        self.create_payments_table()
 
     def create_clients_table(self):
         """Creates the clients table if it does not exist."""
