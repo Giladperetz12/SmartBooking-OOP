@@ -16,3 +16,6 @@ Did a big refactor and organized everything into folders (models, payments, mana
 grow.
 
 Wrote a small test function to make sure everything works together.
+
+connect the hole system to sqlite server
+
