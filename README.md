@@ -1,4 +1,4 @@
-#OOP project for a junior software developer engineer
+OOP project for a junior software developer engineer
 a system for orders managing built with python by me
 
 # project Goals :
