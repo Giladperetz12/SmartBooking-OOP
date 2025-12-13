@@ -1,11 +1,20 @@
 OOP project for a junior software developer engineer
-a system for orders managing built with python by me
+
+a system that designed to manage bookings and client built with python by me
 
 # project Goals :
 
 This project is one of my degree portfolio,
-the main goal is to build up an accessible system following OOP principles
-with optimal run-time and connected to DB - SQLite.
+the main goal is to build up an accessible system following OOP principles that :
+Manage clients through a centralized system
+
+Maintain clear separation between API, business logic, and data access layers
+
+Work with domain models independent of the API layer
+
+Provide controlled and stable interaction with the database
+
+Expose system functionality through an API
 
 #Progress :
 Built all the main classes the system needs — clients, products, orders, payments — with clean OOP structure.
@@ -17,5 +26,14 @@ grow.
 
 Wrote a small test function to make sure everything works together.
 
-connect the hole system to sqlite server
+Set up a running api.
+
+Added an end point to create clients.
+
+Added an end point to retrieve clients by ID.
+
+
+
+
+
 
